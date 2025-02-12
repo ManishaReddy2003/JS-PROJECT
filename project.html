@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Birthday Reminder App</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+    .countdown {
+      font-size: 0.9rem;
+      color: #6c757d;
+    }
+    .upcoming {
+      background-color: #d1e7dd;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="text-center mb-4">Birthday Reminder App</h1>
+
+    <!-- Add Birthday Form -->
+    <div class="card mb-4">
+      <div class="card-header">Add New Birthday</div>
+      <div class="card-body">
+        <form id="addBirthdayForm">
+          <div class="mb-3">
+            <label for="name" class="form-label">Name</label>
+            <input type="text" id="name" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label for="date" class="form-label">Date of Birth</label>
+          <input type="date" id="date" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Birthday</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Birthdays List -->
+  <div class="card">
+    <div class="card-header">Birthdays</div>
+    <div class="card-body">
+      <ul id="birthdayList" class="list-group">
+        <!-- Dynamic Content -->
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  const birthdayList = document.getElementById('birthdayList');
+  const addBirthdayForm = document.getElementById('addBirthdayForm');
+
+  // Load birthdays from localStorage
+  let birthdays = JSON.parse(localStorage.getItem('birthdays')) || [];
+
+  // Helper function to calculate countdown
+  function calculateCountdown(date) {
+    const today = new Date();
+    const nextBirthday = new Date(today.getFullYear(), date.getMonth(), date.getDate());
+
+    if (nextBirthday < today) {
+        nextBirthday.setFullYear(today.getFullYear() + 1);
+      }
+
+      const diff = nextBirthday - today;
+      return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    }
+
+    // Render birthdays
+    function renderBirthdays() {
+      birthdayList.innerHTML = '';
+
+      // Sort birthdays by date
+      birthdays.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      birthdays.forEach((birthday, index) => {
+        const birthdayDate = new Date(birthday.date);
+        const countdown = calculateCountdown(birthdayDate);
+        const isUpcoming = countdown <= 7;
+
+        const listItem = document.createElement('li');
+        listItem.className = `list-group-item d-flex justify-content-between align-items-center ${isUpcoming ? 'upcoming' : ''}`;
+
+        listItem.innerHTML = `
+          <div>
+            <strong>${birthday.name}</strong> <br>
+            <span class="countdown">${countdown} day(s) remaining</span>
+          </div>
+          <div>
+            <button class="btn btn-sm btn-warning me-2" onclick="editBirthday(${index})">Edit</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteBirthday(${index})">Delete</button>
+          </div>
+        `;
+
+        birthdayList.appendChild(listItem);
+    });
+
+localStorage.setItem('birthdays', JSON.stringify(birthdays));
+}
+
+// Add Birthday
+addBirthdayForm.addEventListener('submit', (e) => {
+e.preventDefault();
+
+const name = document.getElementById('name').value;
+const date = document.getElementById('date').value;
+
+birthdays.push({ name, date });
+addBirthdayForm.reset();
+renderBirthdays();
+});
+
+// Edit Birthday
+function editBirthday(index) {
+const birthday = birthdays[index];
+
+document.getElementById('name').value = birthday.name;
+document.getElementById('date').value = birthday.date;
+
+deleteBirthday(index);
+}
+
+// Delete Birthday
+function deleteBirthday(index) {
+birthdays.splice(index, 1);
+renderBirthdays();
+}
+  // Initial render
+  renderBirthdays();
+  </script>
+</body>
+</html>
